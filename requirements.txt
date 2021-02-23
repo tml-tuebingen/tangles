@@ -7,3 +7,4 @@ networkx==2.5
 bitarray==1.6.3
 seaborn==0.11.1
 pydot==1.4.2
+graphviz==0.16
