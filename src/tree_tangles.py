@@ -220,7 +220,10 @@ class TangleTree(object):
 
         fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(20, 10))
         nx.draw_networkx(tree, pos=pos, ax=ax, labels=labels, node_size=1500)
-        plt.savefig(path)
+        if path is not None:
+            plt.savefig(path)
+        else:
+            plt.show()
 
     def _add_node_to_nx(self, tree, node, parent_id=None, direction=None):  # pragma: no cover
 

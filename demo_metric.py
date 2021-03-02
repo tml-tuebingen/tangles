@@ -1,7 +1,7 @@
 from functools import partial
 from pathlib import Path
 
-from sklearn.metrics import normalized_mutual_info_score, silhouette_score, davies_bouldin_score, adjusted_rand_score
+import sklearn
 
 from src import cost_functions, data_types, plotting
 from src.loading import load_GMM
@@ -86,8 +86,8 @@ ys_predicted, _ = utils.compute_hard_predictions(contracted_tree, cuts=bipartiti
 
 # evaluate hard predictions
 if data.ys is not None:
-    ARS = adjusted_rand_score(data.ys, ys_predicted)
-    NMI = normalized_mutual_info_score(data.ys, ys_predicted)
+    ARS = sklearn.metrics.adjusted_rand_score(data.ys, ys_predicted)
+    NMI = sklearn.metrics.normalized_mutual_info_score(data.ys, ys_predicted)
 
     print('Adjusted Rand Score: {}'.format(ARS), flush=True)
     print('Normalized Mutual Information: {}/n'.format(NMI), flush=True)
@@ -97,11 +97,14 @@ if plot:
 
     output_directory.mkdir(parents=True, exist_ok=True)
 
-    # plot the tree
-    tangles_tree.plot_tree(path=output_directory / 'tree.svg')
+    #####
+    ##### If you have graphviz installen feel free to uncomment the following lines to also plot and save the trees
+    #####
+    ## plot the tree
+    # tangles_tree.plot_tree(path=output_directory / 'tree.svg')
 
-    # plot contracted tree
-    contracted_tree.plot_tree(path=output_directory / 'contracted.svg')
+    ## plot contracted tree
+    # contracted_tree.plot_tree(path=output_directory / 'contracted.svg')
 
     # plot soft predictions
     plotting.plot_soft_predictions(data=data,
