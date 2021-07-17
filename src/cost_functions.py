@@ -1,7 +1,61 @@
 import numpy as np
+from sklearn.metrics import pairwise_distances
 
 from sklearn.neighbors import DistanceMetric
 
+
+def gauss_kernel_distance(xs, n_samples, cut, decay=1):
+    """
+    This function computes the implicit order of a cut.
+    It is zero if the cut is either the whole set or the empty set
+
+    If n_samples if not None we do a montecarlo approximation of the value.
+
+    Parameters
+    ----------
+    xs : array of shape [n_points, n_features]
+        The points in our space
+    cut: array of shape [n_points]
+        The cut that we are considering
+    n_samples: int, optional (default=None)
+        The maximums number of points to take per orientation in the Monte Carlo approximation of the order
+
+    Returns
+    -------
+    expected_order, int
+        The average order for the cut
+    """
+
+    _, n_features = xs.shape
+    if np.all(cut) or np.all(~cut):
+        return 0
+
+    if not n_samples:
+
+        in_cut = xs[cut, :]
+        out_cut = xs[~cut, :]
+
+    else:
+
+        idx = np.arange(len(xs))
+
+        if n_samples <= len(idx[cut]):
+            idx_in = np.random.choice(idx[cut], size=n_samples, replace=False)
+            in_cut = xs[idx_in, :]
+        else:
+            in_cut = xs[cut, :]
+
+        if n_samples <= len(idx[~cut]):
+            idx_out = np.random.choice(idx[~cut], size=n_samples, replace=False)
+            out_cut = xs[idx_out, :]
+        else:
+            out_cut = xs[~cut, :]
+
+    distance = pairwise_distances(in_cut, out_cut, metric='euclidean')
+    similarity = np.exp(-distance)
+    expected_similarity = np.sum(similarity)
+
+    return expected_similarity
 
 def euclidean_distance(xs, n_samples, cut):
     """
@@ -50,10 +104,8 @@ def euclidean_distance(xs, n_samples, cut):
         else:
             out_cut = xs[~cut, :]
 
-    metric = DistanceMetric.get_metric('euclidean')
-
-    distance = metric.pairwise(in_cut, out_cut)
-    similarity = 1. / (distance / np.max(distance))
+    distance = -pairwise_distances(in_cut, out_cut, metric='euclidean')
+    similarity = distance
     expected_similarity = np.sum(similarity)
 
     return expected_similarity
@@ -105,10 +157,8 @@ def mean_euclidean_distance(xs, n_samples, cut):
         else:
             out_cut = xs[~cut, :]
 
-    metric = DistanceMetric.get_metric('euclidean')
-
-    distance = metric.pairwise(in_cut, out_cut)
-    similarity = 1. / (distance / np.max(distance))
+    distance = -pairwise_distances(in_cut, out_cut, metric='euclidean')
+    similarity = distance
     expected_similarity = np.mean(similarity)
 
     return expected_similarity

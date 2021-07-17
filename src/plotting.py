@@ -168,7 +168,7 @@ def plot_soft_prediction_node(data, node, eq_cuts, id_node, cmap, path, pos):
 
 def plot_hard_predictions(data, ys_predicted, path=None):
     cmap_groundtruth = plt.cm.get_cmap('autumn')
-    cmap_predictions = plt.cm.get_cmap('winter')
+    cmap_predictions = plt.cm.get_cmap('cool')
 
     if path is not None:
         output_path = path

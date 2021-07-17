@@ -23,7 +23,7 @@ The execution is divided in the following steps
     4. Postprocess in soft and hard clustering
 """
 
-# define yout parameters
+# define your parameters
 plot = True
 output_directory = Path('output_graph')
 seed = 42
