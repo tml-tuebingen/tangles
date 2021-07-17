@@ -2,7 +2,10 @@ import numpy as np
 from sklearn.random_projection import GaussianRandomProjection
 
 
-def a_slice(xs, a):
+def a_slice(xs, a, xs_original=None):
+    if xs_original is None:
+        xs_original = xs
+
     cut_names = []
     cuts = []
 
@@ -10,16 +13,28 @@ def a_slice(xs, a):
 
     for i in range(d):
         x = xs[:, i]
+        x_original = xs_original[:, i]
+        # check if i is aready binary
+        unique = np.unique(x)
+        if len(unique) <= 2:
+            if len(unique) == 1:
+                continue
+            cut = np.zeros_like(x)
+            cut[x == unique[0]] = 0
+            cut[x == unique[1]] = 1
+            cuts.append(cut.astype(bool))
+            cut_names.append('{} is True'.format(i))
+            continue
         idx_sorted = np.argsort(np.argsort(x))
         j = 1
-        while j < n-a-1:
+        while j < n:
             cut = np.array([1] * j + [0] * (n-j))
             cut = cut[idx_sorted].astype(bool)
             cuts.append(cut)
-            cut_names.append('dimension {} smaller or equal than {}'.format(i, max(x[cut])))
+            cut_names.append('{} smaller {}'.format(i, max(x_original[cut])))
             j += (a-1)
 
-    return np.array(cuts)
+    return np.array(cuts), np.array(cut_names)
 
 
 # ----------------------------------------------------------------------------------------------------------------------
