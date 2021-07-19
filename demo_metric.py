@@ -39,7 +39,8 @@ print("Preprocessing data", flush=True)
 
 # calculate your bipartitions
 print("\tGenerating set of bipartitions", flush=True)
-bipartitions = data_types.Cuts(values=a_slice(xs=data.xs, a=agreement))
+values, names = a_slice(xs=data.xs, a=agreement)
+bipartitions = data_types.Cuts(values=values, names = names)
 
 print("\tFound {} unique bipartitions".format(len(bipartitions.values)), flush=True)
 print("\tCalculating costs if bipartitions", flush=True)
