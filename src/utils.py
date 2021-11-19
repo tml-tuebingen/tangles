@@ -4,12 +4,16 @@ import json
 import numpy as np
 from sklearn.manifold import TSNE
 from sklearn.neighbors._dist_metrics import DistanceMetric
+from tqdm import tqdm
 
 
 class Orientation(object):
 
     def __init__(self, direction):
+        if type(direction) == int:
+            direction = bool(direction)
         self.orientation_bool = direction
+
         if direction == 'both':
             self.direction = direction
         elif direction is True:
@@ -122,7 +126,7 @@ def subset(a, b):
     return (a & b).count() == a.count()
 
 
-def compute_cost_and_order_cuts(bipartitions, cost_function):
+def compute_cost_and_order_cuts(bipartitions, cost_function, verbose=True):
     """
     Compute the cost of a series of cuts and costs them according to their cost
 
@@ -138,9 +142,11 @@ def compute_cost_and_order_cuts(bipartitions, cost_function):
     cuts: Cuts
         the cuts ordered by costs
     """
+    if verbose:
+        print("Computing costs of cuts...")
 
     cost_bipartitions = np.zeros(len(bipartitions.values), dtype=float)
-    for i_cut, cut in enumerate(bipartitions.values):
+    for i_cut, cut in enumerate(tqdm(bipartitions.values, disable=not verbose)):
         cost_bipartitions[i_cut] = cost_function(cut)
 
     idx = np.argsort(cost_bipartitions)

@@ -6,7 +6,7 @@ from networkx.drawing.nx_pydot import graphviz_layout
 import bitarray as ba
 import numpy as np
 
-from src.tangles import Tangle, core_algorithm
+from src.tangles import Tangle, core_algorithm, pad_bitarray
 from src.utils import matching_items, Orientation
 
 MAX_CLUSTERS = 50
@@ -151,6 +151,8 @@ class TangleTree(object):
         self.active = []
 
         could_add_one = False
+        # Go through all nodes that are on the order of the preceding cut.
+        # Check if we can add the current cut to them.
         for current_node in current_active:
             could_add_node, did_split, is_maximal = self._add_children_to_node(current_node, cut, cut_id)
             could_add_one = could_add_one or could_add_node
@@ -172,25 +174,32 @@ class TangleTree(object):
         if cut.dtype is not bool:
             cut = cut.astype(bool)
 
+        # Tangle with the cut added in present orientation.
         new_tangle_true = old_tangle.add(new_cut=ba.bitarray(cut.tolist()),
-                                         new_cut_specification={cut_id: True},
+                                         new_cut_id=cut_id,
+                                         orientation=True,
                                          min_size=self.agreement)
+        # Tangle with the cut added in opposite orientation.
         new_tangle_false = old_tangle.add(new_cut=ba.bitarray((~cut).tolist()),
-                                          new_cut_specification={cut_id: False},
+                                          new_cut_id=cut_id,
+                                          orientation=False,
                                           min_size=self.agreement)
 
         could_add_one = False
 
+        # Case of a splitting tangle, we could add both orientations
         if new_tangle_true is not None and new_tangle_false is not None:
             did_split = True
         else:
             did_split = False
 
+        # Cut could not be added in any orientation.
         if new_tangle_true is None and new_tangle_false is None:
             is_maximal = True
         else:
             is_maximal = False
 
+        # Cut could be added in the original orientation.
         if new_tangle_true is not None:
             could_add_one = True
             new_node = _add_new_child(current_node=current_node,
@@ -200,6 +209,7 @@ class TangleTree(object):
                                       did_split=did_split)
             self.active.append(new_node)
 
+        # Cut could be added in the opposite orientation.
         if new_tangle_false is not None:
             could_add_one = True
             new_node = _add_new_child(current_node=current_node,
@@ -370,14 +380,15 @@ class ContractedTangleTree(TangleTree):
                 return self._contract_subtree(parent=parent, node=node.right_child)
 
 
+
 def process_split(node):
     node_id = node.last_cut_added_id if node.last_cut_added_id else -1
 
     characterizing_cuts_left = node.left_child.characterizing_cuts
     characterizing_cuts_right = node.right_child.characterizing_cuts
 
-    orientation_left = node.left_child.tangle.specification
-    orientation_right = node.right_child.tangle.specification
+    orientation_left = node.left_child.tangle.get_specification()
+    orientation_right = node.right_child.tangle.get_specification()
 
     # add new relevant cuts
     for id_cut in range(node_id + 1, node.left_child.last_cut_added_id + 1):
@@ -511,7 +522,7 @@ def tangle_computation(cuts, agreement, verbose):
             if new_tree is None:
                 max_order = cuts.costs[-1]
                 if verbose >= 2:
-                    print('\t\tI could not add all the new cuts due to inconsistency')
+                    print('\t\tI could not add any new cuts due to inconsistency')
                     print('\n\tI stopped the computation at order {} instead of {}'.format(old_order, max_order),
                           flush=True)
                 break
