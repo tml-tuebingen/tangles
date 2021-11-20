@@ -36,7 +36,8 @@ class TangleNode(object):
             string = 'Root'
         else:
             padding = ' '
-            string = '{}{} -> {}'.format(padding * height, self.last_cut_added_id, self.last_cut_added_orientation)
+            string = '{}{} -> {}'.format(padding * height,
+                                         self.last_cut_added_id, self.last_cut_added_orientation)
 
         if self.left_child is not None:
             string += '\n'
@@ -80,11 +81,13 @@ class ContractedTangleNode(TangleNode):
         padding = '  '
         string_cuts = ['{} -> {}'.format(k, v) for k, v in self.characterizing_cuts_left.items()] \
             if self.characterizing_cuts_left is not None else ''
-        string += '{}{} left: {}\n'.format(padding * height, self.last_cut_added_id, string_cuts)
+        string += '{}{} left: {}\n'.format(padding *
+                                           height, self.last_cut_added_id, string_cuts)
 
         string_cuts = ['{} -> {}'.format(k, v) for k, v in self.characterizing_cuts_right.items()] \
             if self.characterizing_cuts_right is not None else ''
-        string += '{}{} right: {}\n'.format(padding * height, self.last_cut_added_id, string_cuts)
+        string += '{}{} right: {}\n'.format(padding *
+                                            height, self.last_cut_added_id, string_cuts)
 
         if self.left_child is not None:
             string += '\n'
@@ -154,7 +157,8 @@ class TangleTree(object):
         # Go through all nodes that are on the order of the preceding cut.
         # Check if we can add the current cut to them.
         for current_node in current_active:
-            could_add_node, did_split, is_maximal = self._add_children_to_node(current_node, cut, cut_id)
+            could_add_node, did_split, is_maximal = self._add_children_to_node(
+                current_node, cut, cut_id)
             could_add_one = could_add_one or could_add_node
 
             if did_split:
@@ -253,10 +257,12 @@ class TangleTree(object):
         labels = {my_id: my_label}
 
         if node.left_child is not None:
-            left_labels = self._add_node_to_nx(tree, node.left_child, parent_id=my_id, direction='left')
+            left_labels = self._add_node_to_nx(
+                tree, node.left_child, parent_id=my_id, direction='left')
             labels = {**labels, **left_labels}
         if node.right_child is not None:
-            right_labels = self._add_node_to_nx(tree, node.right_child, parent_id=my_id, direction='right')
+            right_labels = self._add_node_to_nx(
+                tree, node.right_child, parent_id=my_id, direction='right')
             labels = {**labels, **right_labels}
 
         return labels
@@ -278,7 +284,8 @@ class ContractedTangleTree(TangleTree):
 
     def prune(self, prune_depth=1):
         self._delete_noise_clusters(self.root, depth=prune_depth)
-        print("\t{} clusters after cutting out short paths.".format(len(self.maximals)))
+        print("\t{} clusters after cutting out short paths.".format(
+            len(self.maximals)))
 
     def _delete_noise_clusters(self, node, depth):
         if depth == 0:
@@ -286,7 +293,8 @@ class ContractedTangleTree(TangleTree):
 
         if node.is_leaf():
             if node.parent is None:
-                Warning("This node is a leaf and the root at the same time. This tree is empty!")
+                Warning(
+                    "This node is a leaf and the root at the same time. This tree is empty!")
             else:
                 node_id = node.last_cut_added_id
                 parent_id = node.parent.last_cut_added_id
@@ -350,36 +358,45 @@ class ContractedTangleTree(TangleTree):
                 process_split(node)
                 return
 
+    # As python has no Tail Call Optimization, it is more beneficial to
+    # use contract_subtree in an iterative fashion. Else we quickly
+    # get in the territory of a stack explosion.
+    def _contract_subtree_iterative(self, parent, node):
+        current_node = node
+
+        while True:
+            if current_node.left_child is None and current_node.right_child is None:
+                # is leaf so create new node
+                contracted_node = ContractedTangleNode(parent=parent, node=current_node)
+                self.maximals.append(contracted_node)
+                return contracted_node
+            elif current_node.left_child is not None and current_node.right_child is not None:
+                # is splitting so create new node
+                contracted_node = ContractedTangleNode(parent=parent, node=current_node)
+
+                contracted_left_child = self._contract_subtree(
+                    parent=contracted_node, node=current_node.left_child)
+                contracted_node.left_child = contracted_left_child
+                # let it know that it is a left child!
+                contracted_node.left_child.is_left_child = True
+
+                contracted_right_child = self._contract_subtree(
+                    parent=contracted_node, node=current_node.right_child)
+                contracted_node.right_child = contracted_right_child
+                # let it know that it is a right child!
+                contracted_node.right_child.is_left_child = False
+
+                self.splitting.append(contracted_node)
+
+                return contracted_node
+            else: 
+                if current_node.left_child is not None:
+                    current_node = current_node.left_child
+                if current_node.right_child is not None:
+                    current_node = current_node.right_child
+
     def _contract_subtree(self, parent, node):
-        if node.left_child is None and node.right_child is None:
-            # is leaf so create new node
-            contracted_node = ContractedTangleNode(parent=parent, node=node)
-            self.maximals.append(contracted_node)
-            return contracted_node
-        elif node.left_child is not None and node.right_child is not None:
-            # is splitting so create new node
-            contracted_node = ContractedTangleNode(parent=parent, node=node)
-
-            contracted_left_child = self._contract_subtree(parent=contracted_node, node=node.left_child)
-            contracted_node.left_child = contracted_left_child
-            # let it know that it is a left child!
-            contracted_node.left_child.is_left_child = True
-
-            contracted_right_child = self._contract_subtree(parent=contracted_node, node=node.right_child)
-            contracted_node.right_child = contracted_right_child
-            # let it know that it is a right child!
-            contracted_node.right_child.is_left_child = False
-
-            self.splitting.append(contracted_node)
-
-            return contracted_node
-        else:
-            if node.left_child is not None:
-                return self._contract_subtree(parent=parent, node=node.left_child)
-            if node.right_child is not None:
-                return self._contract_subtree(parent=parent, node=node.right_child)
-
-
+        return self._contract_subtree_iterative(parent, node)
 
 def process_split(node):
     node_id = node.last_cut_added_id if node.last_cut_added_id else -1
@@ -392,10 +409,12 @@ def process_split(node):
 
     # add new relevant cuts
     for id_cut in range(node_id + 1, node.left_child.last_cut_added_id + 1):
-        characterizing_cuts_left[id_cut] = Orientation(orientation_left[id_cut])
+        characterizing_cuts_left[id_cut] = Orientation(
+            orientation_left[id_cut])
 
     for id_cut in range(node_id + 1, node.right_child.last_cut_added_id + 1):
-        characterizing_cuts_right[id_cut] = Orientation(orientation_right[id_cut])
+        characterizing_cuts_right[id_cut] = Orientation(
+            orientation_right[id_cut])
 
     id_not_in_both = (characterizing_cuts_left.keys() | characterizing_cuts_right.keys()) \
         .difference(characterizing_cuts_left.keys() & characterizing_cuts_right.keys())
@@ -406,9 +425,11 @@ def process_split(node):
         characterizing_cuts_right.pop(id_cut, None)
 
     # characterizing cuts of the current node
-    characterizing_cuts = {**characterizing_cuts_left, **characterizing_cuts_right}
+    characterizing_cuts = {
+        **characterizing_cuts_left, **characterizing_cuts_right}
 
-    id_cuts_oriented_same_way = matching_items(characterizing_cuts_left, characterizing_cuts_right)
+    id_cuts_oriented_same_way = matching_items(
+        characterizing_cuts_left, characterizing_cuts_right)
 
     # if they are oriented in the same way they are not relevant for distungishing but might be for 'higher' nodes
     # delete in the left and right parts but keep in the characteristics of the current node
@@ -417,7 +438,8 @@ def process_split(node):
         characterizing_cuts_left.pop(id_cut)
         characterizing_cuts_right.pop(id_cut)
 
-    id_cuts_oriented_both_ways = characterizing_cuts_left.keys() & characterizing_cuts_right.keys()
+    id_cuts_oriented_both_ways = characterizing_cuts_left.keys(
+    ) & characterizing_cuts_right.keys()
 
     # remove the cuts that are oriented in both trees but in different directions from the current node since they do
     # not affect higher nodes anymore
@@ -512,7 +534,8 @@ def tangle_computation(cuts, agreement, verbose):
         if len(idx_cuts_order_i) > 0:
 
             if verbose >= 2:
-                print("\tCompute tangles of order {} with {} new cuts".format(order, len(idx_cuts_order_i)), flush=True)
+                print("\tCompute tangles of order {} with {} new cuts".format(
+                    order, len(idx_cuts_order_i)), flush=True)
 
             cuts_order_i = cuts.values[idx_cuts_order_i]
             new_tree = core_algorithm(tree=tangles_tree,
@@ -538,6 +561,7 @@ def tangle_computation(cuts, agreement, verbose):
     if tangles_tree is not None:
         tangles_tree.maximals += tangles_tree.active
 
-    print("\t{} leaves before cutting out short paths.".format(len(tangles_tree.maximals)))
+    print("\t{} leaves before cutting out short paths.".format(
+        len(tangles_tree.maximals)))
 
     return tangles_tree
