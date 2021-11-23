@@ -374,13 +374,13 @@ class ContractedTangleTree(TangleTree):
                 # is splitting so create new node
                 contracted_node = ContractedTangleNode(parent=parent, node=current_node)
 
-                contracted_left_child = self._contract_subtree(
+                contracted_left_child = self._contract_subtree_iterative(
                     parent=contracted_node, node=current_node.left_child)
                 contracted_node.left_child = contracted_left_child
                 # let it know that it is a left child!
                 contracted_node.left_child.is_left_child = True
 
-                contracted_right_child = self._contract_subtree(
+                contracted_right_child = self._contract_subtree_iterative(
                     parent=contracted_node, node=current_node.right_child)
                 contracted_node.right_child = contracted_right_child
                 # let it know that it is a right child!
@@ -392,7 +392,7 @@ class ContractedTangleTree(TangleTree):
             else: 
                 if current_node.left_child is not None:
                     current_node = current_node.left_child
-                if current_node.right_child is not None:
+                elif current_node.right_child is not None:
                     current_node = current_node.right_child
 
     def _contract_subtree(self, parent, node):
