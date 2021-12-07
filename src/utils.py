@@ -163,7 +163,7 @@ def compute_cost_and_order_cuts(bipartitions, cost_function, verbose=True):
     return bipartitions
 
 
-def compute_hard_predictions(condensed_tree, cuts, xs=None):
+def compute_hard_predictions(condensed_tree, cuts, xs=None, verbose=True):
     if xs is not None:
         cs = []
         nb_cuts = len(cuts.values)
@@ -179,7 +179,7 @@ def compute_hard_predictions(condensed_tree, cuts, xs=None):
         return compute_mindset_prediciton(xs, cs), cs
 
     else:
-        if not condensed_tree.processed_soft_prediction:
+        if not condensed_tree.processed_soft_prediction and verbose:
             print("No probabilities given yet. Calculating soft predictions first!")
 
         probabilities = []

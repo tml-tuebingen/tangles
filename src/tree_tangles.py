@@ -282,10 +282,11 @@ class ContractedTangleTree(TangleTree):
     def __str__(self):  # pragma: no cover
         return str(self.root)
 
-    def prune(self, prune_depth=1):
+    def prune(self, prune_depth=1, verbose=True):
         self._delete_noise_clusters(self.root, depth=prune_depth)
-        print("\t{} clusters after cutting out short paths.".format(
-            len(self.maximals)))
+        if verbose:
+            print("\t{} clusters after cutting out short paths.".format(
+                len(self.maximals)))
 
     def _delete_noise_clusters(self, node, depth):
         if depth == 0:
@@ -561,7 +562,8 @@ def tangle_computation(cuts, agreement, verbose):
     if tangles_tree is not None:
         tangles_tree.maximals += tangles_tree.active
 
-    print("\t{} leaves before cutting out short paths.".format(
-        len(tangles_tree.maximals)))
+    if verbose >= 1:
+        print("\t{} leaves before cutting out short paths.".format(
+            len(tangles_tree.maximals)))
 
     return tangles_tree
