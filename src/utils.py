@@ -108,10 +108,13 @@ def get_points_to_plot(xs, cs):
     if nb_features > 2:
         if cs is not None:
             points_to_embed = np.vstack([xs, cs])
-            embeds = TSNE(n_components=2, random_state=42).fit_transform(points_to_embed)
-            xs_embedded, cs_embedded = embeds[:-nb_centers], embeds[-nb_centers:]
+            embeds = TSNE(n_components=2, random_state=42).fit_transform(
+                points_to_embed)
+            xs_embedded, cs_embedded = embeds[:-
+                                              nb_centers], embeds[-nb_centers:]
         else:
-            xs_embedded = TSNE(n_components=2, random_state=42).fit_transform(xs)
+            xs_embedded = TSNE(
+                n_components=2, random_state=42).fit_transform(xs)
     else:
         xs_embedded = xs
         cs_embedded = cs
@@ -188,7 +191,8 @@ def compute_hard_predictions(condensed_tree, cuts, xs=None, verbose=True):
         for leaf in condensed_tree.maximals:
             c = np.full(nb_cuts, 0.5)
             tangle = leaf.tangle
-            c[list(tangle.specification.keys())] = np.array(list(tangle.specification.values()), dtype=int)
+            c[list(tangle.specification.keys())] = np.array(
+                list(tangle.specification.values()), dtype=int)
             cs.append(c[cuts.order])
 
         cs = np.array(cs)
@@ -206,6 +210,7 @@ def compute_hard_predictions(condensed_tree, cuts, xs=None, verbose=True):
         ys_predicted = np.argmax(probabilities, axis=0)
 
         return ys_predicted, None
+
 
 def compute_mindset_prediciton(xs, cs):
     metric = DistanceMetric.get_metric('manhattan')

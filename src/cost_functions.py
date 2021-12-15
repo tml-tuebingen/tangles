@@ -46,7 +46,8 @@ def gauss_kernel_distance(xs, n_samples, cut, decay=1):
             in_cut = xs[cut, :]
 
         if n_samples <= len(idx[~cut]):
-            idx_out = np.random.choice(idx[~cut], size=n_samples, replace=False)
+            idx_out = np.random.choice(
+                idx[~cut], size=n_samples, replace=False)
             out_cut = xs[idx_out, :]
         else:
             out_cut = xs[~cut, :]
@@ -56,6 +57,7 @@ def gauss_kernel_distance(xs, n_samples, cut, decay=1):
     expected_similarity = np.sum(similarity)
 
     return expected_similarity
+
 
 def euclidean_distance(xs, n_samples, cut):
     """
@@ -99,7 +101,8 @@ def euclidean_distance(xs, n_samples, cut):
             in_cut = xs[cut, :]
 
         if n_samples <= len(idx[~cut]):
-            idx_out = np.random.choice(idx[~cut], size=n_samples, replace=False)
+            idx_out = np.random.choice(
+                idx[~cut], size=n_samples, replace=False)
             out_cut = xs[idx_out, :]
         else:
             out_cut = xs[~cut, :]
@@ -152,7 +155,8 @@ def mean_euclidean_distance(xs, n_samples, cut):
             in_cut = xs[cut, :]
 
         if n_samples <= len(idx[~cut]):
-            idx_out = np.random.choice(idx[~cut], size=n_samples, replace=False)
+            idx_out = np.random.choice(
+                idx[~cut], size=n_samples, replace=False)
             out_cut = xs[idx_out, :]
         else:
             out_cut = xs[~cut, :]
@@ -206,7 +210,8 @@ def manhattan_distance(xs, n_samples, cut):
             in_cut = xs[cut, :]
 
         if n_samples <= len(idx[~cut]):
-            idx_out = np.random.choice(idx[~cut], size=n_samples, replace=False)
+            idx_out = np.random.choice(
+                idx[~cut], size=n_samples, replace=False)
             out_cut = xs[idx_out, :]
         else:
             out_cut = xs[~cut, :]
@@ -262,7 +267,8 @@ def mean_manhattan_distance(xs, n_samples, cut):
             in_cut = xs[cut, :]
 
         if n_samples <= len(idx[~cut]):
-            idx_out = np.random.choice(idx[~cut], size=n_samples, replace=False)
+            idx_out = np.random.choice(
+                idx[~cut], size=n_samples, replace=False)
             out_cut = xs[idx_out, :]
         else:
             out_cut = xs[~cut, :]

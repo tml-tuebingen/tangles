@@ -368,12 +368,14 @@ class ContractedTangleTree(TangleTree):
         while True:
             if current_node.left_child is None and current_node.right_child is None:
                 # is leaf so create new node
-                contracted_node = ContractedTangleNode(parent=parent, node=current_node)
+                contracted_node = ContractedTangleNode(
+                    parent=parent, node=current_node)
                 self.maximals.append(contracted_node)
                 return contracted_node
             elif current_node.left_child is not None and current_node.right_child is not None:
                 # is splitting so create new node
-                contracted_node = ContractedTangleNode(parent=parent, node=current_node)
+                contracted_node = ContractedTangleNode(
+                    parent=parent, node=current_node)
 
                 contracted_left_child = self._contract_subtree_iterative(
                     parent=contracted_node, node=current_node.left_child)
@@ -390,7 +392,7 @@ class ContractedTangleTree(TangleTree):
                 self.splitting.append(contracted_node)
 
                 return contracted_node
-            else: 
+            else:
                 if current_node.left_child is not None:
                     current_node = current_node.left_child
                 elif current_node.right_child is not None:
@@ -398,6 +400,7 @@ class ContractedTangleTree(TangleTree):
 
     def _contract_subtree(self, parent, node):
         return self._contract_subtree_iterative(parent, node)
+
 
 def process_split(node):
     node_id = node.last_cut_added_id if node.last_cut_added_id else -1
