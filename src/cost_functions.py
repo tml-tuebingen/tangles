@@ -275,6 +275,40 @@ def mean_manhattan_distance(xs, n_samples, cut):
 
     return expected_similarity
 
+class BipartitionSimilarity():
+    def __init__(self, all_bipartitions: np.ndarray) -> None:
+        """
+        Computes the cost cost of a bipartition according to Klepper et. al 2020,
+        "Clustering With Tangles Algorithmic Framework"; p.9
+        https://arxiv.org/abs/2006.14444
+
+        This class is intended for repeated cost calculation, which is done in an efficient manner 
+        by precomputing all distances between bipartitions
+        in a first step and then computing the cost of a bipartition by summing the respective 
+        distances.
+
+        all_bipartitions: np.ndarray of shape (datapoints, questions), 
+            containing all possible bipartitions.
+        """
+        metric = DistanceMetric.get_metric('manhattan') 
+        self.dists = metric.pairwise(all_bipartitions)
+
+    def __call__(self, bipartition: np.ndarray):
+        """
+        bipartitions: np.ndarray of shape (datapoints,) consisting of booleans. 
+            In the questionnaire scenario, this is corresponding to one
+            column (question), filled out by all participants
+        """
+        if np.all(bipartition) or np.all(~bipartition):
+            return 0
+        in_cut = np.where(bipartition)[0]
+        out_cut = np.where(~bipartition)[0]
+
+        distance = self.dists[np.ix_(in_cut, out_cut)]
+        similarity = 1. / (distance / np.max(distance))
+        expected_similarity = np.mean(similarity)
+        return expected_similarity
+
 
 def edges_cut_cost(A, n_samples, cut):
     """
