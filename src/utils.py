@@ -5,7 +5,7 @@ import numpy as np
 from sklearn.manifold import TSNE
 from sklearn.neighbors._dist_metrics import DistanceMetric
 from tqdm import tqdm
-
+from src.data_types import Cuts
 
 class Orientation(object):
 
@@ -126,21 +126,26 @@ def subset(a, b):
     return (a & b).count() == a.count()
 
 
-def compute_cost_and_order_cuts(bipartitions, cost_function, verbose=True):
+def compute_cost_and_order_cuts(bipartitions, cost_functions, verbose=True):
+    costs = compute_cost(bipartitions, cost_functions, verbose=verbose)
+    return order_cuts(bipartitions, costs)
+
+
+def compute_cost(bipartitions, cost_function, verbose=True):
     """
-    Compute the cost of a series of cuts and costs them according to their cost
+    Compute the cost of a series of cuts and returns a cost array.
 
     Parameters
     ----------
     cuts: Cuts
-        the cuts that we will consider
+        where cuts.values has shape (n_questions, n_datapoints)
     cost_function: function
-        The order function
+        callable that calculates the cost of a single cut, which is an ndarray of shape
+        (n_datapoints)
 
     Returns
     -------
-    cuts: Cuts
-        the cuts ordered by costs
+    cost: ndarray of shape (n_questions) containing the costs of each cut as entries
     """
     if verbose:
         print("Computing costs of cuts...")
@@ -148,7 +153,19 @@ def compute_cost_and_order_cuts(bipartitions, cost_function, verbose=True):
     cost_bipartitions = np.zeros(len(bipartitions.values), dtype=float)
     for i_cut, cut in enumerate(tqdm(bipartitions.values, disable=not verbose)):
         cost_bipartitions[i_cut] = cost_function(cut)
+    return cost_bipartitions
 
+
+def order_cuts(bipartitions: Cuts, cost_bipartitions: np.ndarray):
+    """
+    Orders cuts based on the cost of the cuts.
+
+    bipartitions: Cuts,
+    where values contains an ndarray of shape (n_questions, n_datapoints).
+    cost_bipartitions: ndarray,
+    where values contains an ndarray of shape (n_datapoints). Contains
+    the cost of each cut as value.
+    """
     idx = np.argsort(cost_bipartitions)
 
     bipartitions.values = bipartitions.values[idx]
