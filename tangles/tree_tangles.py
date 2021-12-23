@@ -6,8 +6,8 @@ from networkx.drawing.nx_pydot import graphviz_layout
 import bitarray as ba
 import numpy as np
 
-from src.tangles import Tangle, core_algorithm, pad_bitarray
-from src.utils import matching_items, Orientation
+from tangles.tangles import Tangle, core_algorithm, pad_bitarray
+from tangles.utils import matching_items, Orientation
 
 MAX_CLUSTERS = 50
 

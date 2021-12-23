@@ -5,7 +5,8 @@ import numpy as np
 from sklearn.manifold import TSNE
 from sklearn.neighbors._dist_metrics import DistanceMetric
 from tqdm import tqdm
-from src.data_types import Cuts
+from tangles.data_types import Cuts
+
 
 class Orientation(object):
 

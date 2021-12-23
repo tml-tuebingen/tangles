@@ -1,6 +1,6 @@
 from copy import deepcopy
 from itertools import combinations
-from src.utils import subset
+from tangles.utils import subset
 from bitarray import bitarray
 
 
