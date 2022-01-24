@@ -281,6 +281,7 @@ def mean_manhattan_distance(xs, n_samples, cut):
 
     return expected_similarity
 
+
 class BipartitionSimilarity():
     def __init__(self, all_bipartitions: np.ndarray) -> None:
         """
@@ -296,7 +297,7 @@ class BipartitionSimilarity():
         all_bipartitions: np.ndarray of shape (datapoints, questions), 
             containing all possible bipartitions.
         """
-        metric = DistanceMetric.get_metric('manhattan') 
+        metric = DistanceMetric.get_metric('manhattan')
         self.dists = metric.pairwise(all_bipartitions)
 
     def __call__(self, bipartition: np.ndarray):
@@ -306,7 +307,8 @@ class BipartitionSimilarity():
             column (question), filled out by all participants
         """
         if np.all(bipartition) or np.all(~bipartition):
-            return 0
+            # Should this be 0 or inf?
+            return np.inf
         in_cut = np.where(bipartition)[0]
         out_cut = np.where(~bipartition)[0]
 
