@@ -1,12 +1,8 @@
-import hashlib
-import json
-
 import numpy as np
 from sklearn.manifold import TSNE
 from sklearn.neighbors._dist_metrics import DistanceMetric
 from tqdm import tqdm
 from tangles.data_types import Cuts
-
 
 class Orientation(object):
 
@@ -184,42 +180,14 @@ def order_cuts(bipartitions: Cuts, cost_bipartitions: np.ndarray):
     return bipartitions
 
 
-def compute_hard_predictions(condensed_tree, cuts, xs=None, verbose=True):
-    if xs is not None:
-        cs = []
-        nb_cuts = len(cuts.values)
+def compute_hard_predictions(condensed_tree, verbose=True):
+    if not condensed_tree.processed_soft_prediction and verbose:
+        print("No probabilities given yet. Calculating soft predictions first!")
 
-        for leaf in condensed_tree.maximals:
-            c = np.full(nb_cuts, 0.5)
-            tangle = leaf.tangle
-            c[list(tangle.specification.keys())] = np.array(
-                list(tangle.specification.values()), dtype=int)
-            cs.append(c[cuts.order])
+    probabilities = []
+    for node in condensed_tree.maximals:
+        probabilities.append(node.p)
 
-        cs = np.array(cs)
+    ys_predicted = np.argmax(probabilities, axis=0)
 
-        return compute_mindset_prediciton(xs, cs), cs
-
-    else:
-        if not condensed_tree.processed_soft_prediction and verbose:
-            print("No probabilities given yet. Calculating soft predictions first!")
-
-        probabilities = []
-        for node in condensed_tree.maximals:
-            probabilities.append(node.p)
-
-        ys_predicted = np.argmax(probabilities, axis=0)
-
-        return ys_predicted, None
-
-
-def compute_mindset_prediciton(xs, cs):
-    metric = DistanceMetric.get_metric('manhattan')
-
-    distance = metric.pairwise(xs, cs)
-    predicted = np.empty(xs.shape[0])
-
-    for i, d in enumerate(distance):
-        predicted[i] = np.random.choice(np.flatnonzero(d == d.min()))
-
-    return predicted
+    return ys_predicted, None
