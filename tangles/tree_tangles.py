@@ -17,7 +17,7 @@ MAX_CLUSTERS = 50
 class TangleNode(object):
 
     def __init__(self, parent, right_child, left_child, is_left_child, splitting,
-                 did_split, last_cut_added_id, last_cut_added_orientation, tangle):
+                 did_split, last_cut_added_id, last_cut_added_orientation, tangle: Tangle):
 
         self.parent = parent
         self.right_child = right_child
@@ -82,8 +82,22 @@ class ContractedTangleNode(TangleNode):
 
         self.p = None
 
+    def get_characterizing_cut_values(self, characterizing_cuts: dict[int, Orientation]) -> dict[int, np.ndarray]:
+        """
+        Returns the values of the cuts in the characterizing cuts dictionary, with the orientation. 
+        IDs are changed to IDs of the unsorted cuts.
+        """
+        ret = {}
+        own_cuts: Cuts = self.tangle._cuts
+        for cut_id, orientation in characterizing_cuts.items():
+            cut = own_cuts.get_cut_at(cut_id, access_sorted=False)
+            if not orientation:
+                cut = ~cut
+            ret[own_cuts.unsorted_id(cut_id)] = cut
+        return ret
+
     def __repr__(self) -> str:
-        return self.__str__()
+        return "Node: " + self.__str__()
 
     def __str__(self) -> str:
         if self.parent is None:
