@@ -1,43 +1,8 @@
 import numpy as np
 
-from tangles.cost_functions import BipartitionSimilarity
-from tangles.data_types import Cuts
-from tangles.tree_tangles import (ContractedTangleTree,
-                                  compute_soft_predictions_children,
-                                  tangle_computation)
-from tangles.utils import compute_hard_predictions, normalize
+from tangles.tree_tangles import get_hard_predictions
 from tangles.loading import load_GMM
 from sklearn.metrics import pairwise_distances
-
-
-def get_preds(X: np.ndarray, agreement: int):
-    cuts = Cuts((X == 1).T)
-    cost_function = BipartitionSimilarity(
-        cuts.values.T)
-    cuts.compute_cost_and_order_cuts(cost_function, verbose=False)
-
-    # Building the tree, contracting and calculating predictions
-    tangles_tree = tangle_computation(cuts=cuts,
-                                      agreement=agreement,
-                                      # print nothing
-                                      verbose=0)
-
-    contracted = ContractedTangleTree(tangles_tree)
-    contracted.prune(1, verbose=False)
-
-    contracted.calculate_setP()
-
-    # soft predictions
-    weight = np.exp(-normalize(cuts.costs))
-
-    compute_soft_predictions_children(
-        node=contracted.root, cuts=cuts, weight=weight, verbose=0)
-    contracted.processed_soft_predictions = True
-
-    ys_predicted, _ = compute_hard_predictions(
-        contracted, verbose=False)
-
-    return ys_predicted
 
 
 def test_trivial():
@@ -46,9 +11,9 @@ def test_trivial():
         [np.ones((3, 3)), np.zeros((3, 3))],
         [np.zeros((3, 3)), np.ones((3, 3))]
     ])
-    assert (np.array([[0, 0, 0, 1, 1, 1]]) == get_preds(X, 2)).all()
-    assert (np.array([[0, 0, 0, 1, 1, 1]]) == get_preds(X, 3)).all()
-    assert (np.array([[0, 0, 0, 0, 0, 0]]) == get_preds(X, 4)).all()
+    assert (np.array([[0, 0, 0, 1, 1, 1]]) == get_hard_predictions(X, 2)).all()
+    assert (np.array([[0, 0, 0, 1, 1, 1]]) == get_hard_predictions(X, 3)).all()
+    assert (np.array([[0, 0, 0, 0, 0, 0]]) == get_hard_predictions(X, 4)).all()
 
 
 def pivot_cut(X, a, b):
@@ -68,7 +33,7 @@ def test_simple_gaussians_ab():
     for a, b in zip(idx_a, idx_b):
         cut = pivot_cut(X, X[a, :], X[b, :])
         cuts.append(cut)
-    pred = get_preds(np.concatenate(cuts).T, 10)
+    pred = get_hard_predictions(np.concatenate(cuts).T, 10)
     res_ab = np.array([1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0,
                        0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0])
     assert np.all(pred == res_ab)
@@ -86,5 +51,5 @@ def test_simple_gaussians_performance():
     for a, b in zip(idx_a, idx_b):
         cut = pivot_cut(X, X[a, :], X[b, :])
         cuts.append(cut)
-    pred = get_preds(np.concatenate(cuts).T, 10)
+    pred = get_hard_predictions(np.concatenate(cuts).T, 10)
     assert np.all(pred == ys)
