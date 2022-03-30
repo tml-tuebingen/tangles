@@ -4,13 +4,14 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 
-from tangles.utils import get_points_to_plot
+from .utils import get_points_to_plot
 
 # Standard colors for uniform plots
 COLOR_SILVER = '#C0C0C0'
 COLOR_SILVER_RGB = (192 / 255, 192 / 255, 192 / 255) + (0.2,)
 COLOR_INDIGO_RGB = (55 / 255, 0 / 255, 175 / 255) + (0.5,)
-COLOR_CARNATION_RGB = np.array((247 / 255, 96 / 255, 114 / 255, 1)).reshape((1, -1))
+COLOR_CARNATION_RGB = np.array(
+    (247 / 255, 96 / 255, 114 / 255, 1)).reshape((1, -1))
 CMAP = plt.cm.get_cmap('Blues')
 
 MARKERS = ['o', '^', 'p', 'D', 's', '.', '>', 'x', '-']
@@ -46,9 +47,11 @@ def get_next_id(current_id, direction):
 
 def plot_dataset(data, colors, ax=None, eq_cuts=None, cmap=None, add_colorbar=True, pos=None, gt=None):
     if data.xs is not None:
-        ax = plot_dataset_metric(data.xs, data.cs, colors, eq_cuts, ax, cmap, add_colorbar, gt)
+        ax = plot_dataset_metric(
+            data.xs, data.cs, colors, eq_cuts, ax, cmap, add_colorbar, gt)
     elif data.G is not None:
-        ax, pos = plot_dataset_graph(data.G, data.ys, colors, ax, cmap, add_colorbar, pos)
+        ax, pos = plot_dataset_graph(
+            data.G, data.ys, colors, ax, cmap, add_colorbar, pos)
 
     return ax, pos
 
@@ -67,7 +70,7 @@ def plot_dataset_graph(G, ys, colors, ax, cmap, add_colorbar, pos):
         pos = get_position(G, ys)
 
     im = nx.draw_networkx(G, pos=pos, ax=ax, node_color=colors, edge_color=COLOR_SILVER, with_labels=False,
-                     edgecolors='black')
+                          edgecolors='black')
     if add_colorbar:
         ax = add_colorbar_to_ax(ax, cmap)
 
@@ -87,9 +90,11 @@ def plot_dataset_metric(xs, cs, colors, eq_cuts, ax, cmap, add_colorbar, gt):
 
     if gt is not None:
         for i in range(len(np.unique(gt))):
-            sc = ax.scatter(xs_embedded[gt == i, 0], xs_embedded[gt == i, 1], color=colors[gt == i], marker=MARKERS[i], cmap=cmap)
+            sc = ax.scatter(xs_embedded[gt == i, 0], xs_embedded[gt == i, 1],
+                            color=colors[gt == i], marker=MARKERS[i], cmap=cmap)
     else:
-        sc = ax.scatter(xs_embedded[:, 0], xs_embedded[:, 1], color=colors)  # vmin=0, vmax=1, edgecolor='black')
+        # vmin=0, vmax=1, edgecolor='black')
+        sc = ax.scatter(xs_embedded[:, 0], xs_embedded[:, 1], color=colors)
 
     if add_colorbar:
         ax = add_colorbar_to_ax(ax, cmap)
@@ -114,7 +119,6 @@ def plot_soft_predictions(data, contracted_tree, eq_cuts=None, id_node=0, path=N
     cmap_groundtruth = plt.cm.get_cmap('autumn')
     cmap_heatmap = plt.cm.get_cmap('Blues')
 
-
     if path is not None:
         output_path = path
         output_path.mkdir(parents=True, exist_ok=True)
@@ -122,7 +126,8 @@ def plot_soft_predictions(data, contracted_tree, eq_cuts=None, id_node=0, path=N
     if data.ys is not None:
         fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(5, 5))
         colors = labels_to_colors(data.ys, cmap=cmap_groundtruth)
-        ax, pos = plot_dataset(data, colors, eq_cuts=eq_cuts, ax=ax, add_colorbar=False, gt=data.ys)
+        ax, pos = plot_dataset(data, colors, eq_cuts=eq_cuts,
+                               ax=ax, add_colorbar=False, gt=data.ys)
 
         plt.tight_layout()
         if path is not None:
@@ -148,7 +153,8 @@ def plot_soft_prediction_node(data, node, eq_cuts, id_node, cmap, path, pos):
         eq_characterizing_cuts = []
 
     fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(5, 5))
-    plot_dataset(data, colors, eq_cuts=eq_characterizing_cuts, ax=ax, cmap=cmap, pos=pos)
+    plot_dataset(data, colors, eq_cuts=eq_characterizing_cuts,
+                 ax=ax, cmap=cmap, pos=pos)
     ax.set_xlabel("Node Id: {}".format(id_node))
 
     plt.tight_layout()
@@ -160,10 +166,12 @@ def plot_soft_prediction_node(data, node, eq_cuts, id_node, cmap, path, pos):
 
     if node.left_child is not None:
         id_left = get_next_id(id_node, 'left')
-        plot_soft_prediction_node(data, node.left_child, eq_cuts, id_left, cmap, path, pos=pos)
+        plot_soft_prediction_node(
+            data, node.left_child, eq_cuts, id_left, cmap, path, pos=pos)
     if node.right_child is not None:
         id_right = get_next_id(id_node, 'right')
-        plot_soft_prediction_node(data, node.right_child, eq_cuts, id_right, cmap, path, pos=pos)
+        plot_soft_prediction_node(
+            data, node.right_child, eq_cuts, id_right, cmap, path, pos=pos)
 
 
 def plot_hard_predictions(data, ys_predicted, path=None):
@@ -175,7 +183,8 @@ def plot_hard_predictions(data, ys_predicted, path=None):
         output_path.mkdir(parents=True, exist_ok=True)
 
     if data.ys is not None:
-        fig, (ax_true, ax_predicted) = plt.subplots(nrows=1, ncols=2, figsize=(10, 5))
+        fig, (ax_true, ax_predicted) = plt.subplots(
+            nrows=1, ncols=2, figsize=(10, 5))
         colors_true = labels_to_colors(data.ys, cmap=cmap_groundtruth)
         ax_true.set_title("Ground truth clusters")
         _ = plot_dataset(data, colors_true, ax=ax_true, add_colorbar=False)
@@ -183,7 +192,8 @@ def plot_hard_predictions(data, ys_predicted, path=None):
         fig, ax_predicted = plt.subplots(nrows=1, ncols=1, figsize=(10, 50))
 
     colors_predicted = labels_to_colors(ys_predicted, cmap=cmap_predictions)
-    _ = plot_dataset(data, colors_predicted, ax=ax_predicted, add_colorbar=False)
+    _ = plot_dataset(data, colors_predicted,
+                     ax=ax_predicted, add_colorbar=False)
     ax_predicted.set_title("Predicted clusters")
 
     plt.tight_layout()
@@ -230,7 +240,8 @@ def plot_cuts(data, cuts, nb_cuts_to_plot, path):
     for i in np.arange(nb_cuts_to_plot):
         eq = [eq_cuts[i]] if eq_cuts is not None else None
 
-        fig, pos = plot_cut(data, cut=value_cuts[i], order=order_cuts[i], eq=eq, pos=pos)
+        fig, pos = plot_cut(
+            data, cut=value_cuts[i], order=order_cuts[i], eq=eq, pos=pos)
         plt.tight_layout()
         if path is not None:
             fig.savefig(path / "cut number {}.png".format(i))
@@ -244,9 +255,11 @@ def plot_cut(data, cut, order, eq, pos):
     cmap_cut = plt.cm.get_cmap('Blues')
 
     if data.ys is not None:
-        fig, (ax_true, ax_cut) = plt.subplots(nrows=1, ncols=2, figsize=(10, 5))
+        fig, (ax_true, ax_cut) = plt.subplots(
+            nrows=1, ncols=2, figsize=(10, 5))
         colors_true = labels_to_colors(data.ys, cmap=cmap_groundtruth)
-        ax_true, pos = plot_dataset(data, colors_true, eq_cuts=eq, ax=ax_true, add_colorbar=False, pos=pos)
+        ax_true, pos = plot_dataset(
+            data, colors_true, eq_cuts=eq, ax=ax_true, add_colorbar=False, pos=pos)
         ax_true.set_title('Groundtruth')
 
     else:
@@ -256,6 +269,7 @@ def plot_cut(data, cut, order, eq, pos):
     fig.suptitle('Cut of order: {}'.format(order))
 
     color_cut = labels_to_colors(cut, cmap=cmap_cut)
-    ax_cut = plot_dataset(data, color_cut, ax=ax_cut, add_colorbar=False, pos=pos)
+    ax_cut = plot_dataset(data, color_cut, ax=ax_cut,
+                          add_colorbar=False, pos=pos)
 
     return fig, pos

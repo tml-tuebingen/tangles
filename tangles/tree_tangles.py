@@ -6,8 +6,10 @@ from networkx.drawing.nx_pydot import graphviz_layout
 import bitarray as ba
 import numpy as np
 
-from tangles.tangles import Tangle, core_algorithm, pad_bitarray
-from tangles.utils import matching_items, Orientation
+from .tangles import Tangle, core_algorithm
+from .utils import compute_hard_predictions, matching_items, Orientation, normalize
+from .cost_functions import BipartitionSimilarity
+from .data_types import Cuts
 
 MAX_CLUSTERS = 50
 
@@ -29,6 +31,14 @@ class TangleNode(object):
         self.last_cut_added_orientation = last_cut_added_orientation
 
         self.tangle = tangle
+
+    @property
+    def last_cut_added(self) -> np.ndarray:
+        cut = self.tangle.get_cuts().get_cut_at(self.last_cut_added_id)
+        if self.last_cut_added_orientation:
+            return cut
+        else:
+            return ~cut
 
     def __str__(self, height=0):    # pragma: no cover
 
@@ -72,7 +82,17 @@ class ContractedTangleNode(TangleNode):
 
         self.p = None
 
-    def __str__(self, height=0):    # pragma: no cover
+    def __repr__(self) -> str:
+        return self.__str__()
+
+    def __str__(self) -> str:
+        if self.parent is None:
+            return "Root"
+        else:
+            orientation = 'T' if self.last_cut_added_orientation else 'F'
+            return f"{self.last_cut_added_id} -> {orientation}"
+
+    def to_string_tree_like(self, height: int = 0):
         string = ""
 
         if self.parent is None:
@@ -91,10 +111,10 @@ class ContractedTangleNode(TangleNode):
 
         if self.left_child is not None:
             string += '\n'
-            string += self.left_child.__str__(height=height + 1)
+            string += self.left_child.to_string_tree_like(height=height + 1)
         if self.right_child is not None:
             string += '\n'
-            string += self.right_child.__str__(height=height + 1)
+            string += self.right_child.to_string_tree_like(height=height + 1)
 
         return string
 
@@ -121,7 +141,7 @@ def _add_new_child(current_node, tangle, last_cut_added_id, last_cut_added_orien
 
 class TangleTree(object):
 
-    def __init__(self, agreement, max_clusters=None):
+    def __init__(self, agreement, cuts, max_clusters=None):
 
         self.root = TangleNode(parent=None,
                                right_child=None,
@@ -131,7 +151,7 @@ class TangleTree(object):
                                did_split=True,
                                last_cut_added_id=-1,
                                last_cut_added_orientation=None,
-                               tangle=Tangle())
+                               tangle=Tangle(cuts=cuts))
         self.max_clusters = max_clusters
         self.active = [self.root]
         self.maximals = []
@@ -522,7 +542,7 @@ def tangle_computation(cuts, agreement, verbose):
         print("Using agreement = {} \n".format(agreement))
         print("Start tangle computation", flush=True)
 
-    tangles_tree = TangleTree(agreement=agreement)
+    tangles_tree = TangleTree(agreement=agreement, cuts=cuts)
     old_order = None
 
     unique_orders = np.unique(cuts.costs)
@@ -570,3 +590,39 @@ def tangle_computation(cuts, agreement, verbose):
             len(tangles_tree.maximals)))
 
     return tangles_tree
+
+
+def get_hard_predictions(X: np.ndarray, agreement: int, verbose: int = 0):
+    """
+    Simple function to return hard predictions from a set of cuts X.
+
+    Cuts X are column-wise e.g. each column is a cut.
+    """
+    verbose_bool = verbose > 0
+    cuts = Cuts((X == 1).T)
+    cost_function = BipartitionSimilarity(
+        cuts.values.T)
+    cuts.compute_cost_and_order_cuts(cost_function, verbose=verbose_bool)
+
+    # Building the tree, contracting and calculating predictions
+    tangles_tree = tangle_computation(cuts=cuts,
+                                      agreement=agreement,
+                                      # print nothing
+                                      verbose=verbose_bool)
+
+    contracted = ContractedTangleTree(tangles_tree)
+    contracted.prune(1, verbose=verbose_bool)
+
+    contracted.calculate_setP()
+
+    # soft predictions
+    weight = np.exp(-normalize(cuts.costs))
+
+    compute_soft_predictions_children(
+        node=contracted.root, cuts=cuts, weight=weight, verbose=verbose_bool)
+    contracted.processed_soft_predictions = True
+
+    ys_predicted, _ = compute_hard_predictions(
+        contracted, verbose=verbose_bool)
+
+    return ys_predicted

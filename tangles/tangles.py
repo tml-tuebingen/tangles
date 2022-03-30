@@ -1,7 +1,9 @@
 from copy import deepcopy
 from itertools import combinations
-from tangles.utils import subset
 from bitarray import bitarray
+
+from .utils import subset
+from .data_types import Cuts
 
 
 def pad_bitarray(b, n):
@@ -48,6 +50,7 @@ class Tangle(dict):
         if core is None:
             core = []
         if cuts is None:
+            raise ValueError("cuts cannot be None")
             cuts = []
         if specification is None:
             specification = bitarray()
@@ -56,7 +59,7 @@ class Tangle(dict):
         self._core = core
         self._specification = specification
 
-    def get_cuts(self):
+    def get_cuts(self) -> Cuts:
         return self._cuts
 
     def get_core(self):
@@ -95,7 +98,7 @@ class Tangle(dict):
         for i, core_cut in enumerate(core):
             if subset(core_cut, new_cut):
                 specification[new_cut_id] = orientation
-                return Tangle(None, core, specification)
+                return Tangle(self._cuts, core, specification)
             if subset(new_cut, core_cut):
                 i_to_remove.append(i)
 
@@ -118,7 +121,7 @@ class Tangle(dict):
         core.append(new_cut)
         specification[new_cut_id] = orientation
 
-        return Tangle(None, core, specification)
+        return Tangle(self._cuts, core, specification)
 
 
 def core_algorithm(tree, current_cuts, idx_current_cuts):

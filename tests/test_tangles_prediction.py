@@ -5,17 +5,16 @@ from tangles.data_types import Cuts
 from tangles.tree_tangles import (ContractedTangleTree,
                                   compute_soft_predictions_children,
                                   tangle_computation)
-from tangles.utils import compute_cost_and_order_cuts, compute_hard_predictions, normalize
+from tangles.utils import compute_hard_predictions, normalize
 from tangles.loading import load_GMM
 from sklearn.metrics import pairwise_distances
 
 
 def get_preds(X: np.ndarray, agreement: int):
-    bipartitions = Cuts((X == 1).T)
+    cuts = Cuts((X == 1).T)
     cost_function = BipartitionSimilarity(
-        bipartitions.values.T)
-    cuts = compute_cost_and_order_cuts(
-        bipartitions, cost_function, verbose=False)
+        cuts.values.T)
+    cuts.compute_cost_and_order_cuts(cost_function, verbose=False)
 
     # Building the tree, contracting and calculating predictions
     tangles_tree = tangle_computation(cuts=cuts,
@@ -31,15 +30,8 @@ def get_preds(X: np.ndarray, agreement: int):
     # soft predictions
     weight = np.exp(-normalize(cuts.costs))
 
-    bipartitions = Cuts((X == 1).T)
-
-    cost_function = BipartitionSimilarity(
-        bipartitions.values.T)
-    _ = compute_cost_and_order_cuts(
-        bipartitions, cost_function, verbose=False)
-
     compute_soft_predictions_children(
-        node=contracted.root, cuts=bipartitions, weight=weight, verbose=0)
+        node=contracted.root, cuts=cuts, weight=weight, verbose=0)
     contracted.processed_soft_predictions = True
 
     ys_predicted, _ = compute_hard_predictions(

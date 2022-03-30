@@ -1,4 +1,7 @@
 from enum import Enum, unique
+from typing import Optional, Callable
+import numpy as np
+from tqdm import tqdm
 
 
 class ExtendedEnum(Enum):
@@ -83,11 +86,85 @@ class Data(object):
 
 
 class Cuts(object):
-
-    def __init__(self, values, names=None, equations=None, costs=None):
-
+    def __init__(self, values: np.ndarray, costs: Optional[np.ndarray] = None):
+        """
+        Initializes a cut object with the given values. 
+        A ROW in the given values object represents one cut.
+        """
+        self.order: Optional[np.ndarray] = None
         self.values = values
-        self.names = names
-        self.equations = equations
         self.costs = costs
-        self.order = None
+
+    def get_cut_at(self, id: int, access_sorted: bool = False):
+        """
+        Returns the cut at the given ID. 
+
+        If access_sorted is set to True, uses id to index into
+        the sorted array, elses interprets the id as being of the original.
+        """
+        if access_sorted:
+            if self.order is None:
+                raise ValueError("Cuts are not sorted yet!")
+            return self.values[id, :]
+        else:
+            id = self.unsorted_id(id)
+            return self.values[id, :]
+
+    def unsorted_id(self, id: int):
+        """
+        Takes in a cut id from this cuts objects and returns the original id, before 
+        it was sorted.
+        """
+        if self.order is None:
+            return id
+        else:
+            return self.order[id]
+
+    def compute_cost_and_order_cuts(self, cost_function: Callable, verbose=True):
+        """
+        Computes the costs of this cut and orders the cuts.
+
+        This mutates the cuts object!
+        """
+        costs = self._compute_cost(cost_function, verbose=verbose)
+        self._order_cuts(costs)
+
+    def _compute_cost(self, cost_function, verbose=True):
+        """
+        Compute the cost of a series of cuts and returns a cost array.
+
+        Parameters
+        ----------
+        cuts: Cuts
+            where cuts.values has shape (n_questions, n_datapoints)
+        cost_function: function
+            callable that calculates the cost of a single cut, which is an ndarray of shape
+            (n_datapoints)
+
+        Returns
+        -------
+        cost: ndarray of shape (n_questions) containing the costs of each cut as entries
+        """
+        if verbose:
+            print("Computing costs of cuts...")
+
+        cost_bipartitions = np.zeros(len(self.values), dtype=float)
+        for i_cut, cut in enumerate(tqdm(self.values, disable=not verbose)):
+            cost_bipartitions[i_cut] = cost_function(cut)
+        return cost_bipartitions
+
+    def _order_cuts(self, cost_bipartitions: np.ndarray):
+        """
+        Orders cuts based on the cost of the cuts.
+
+        cost_bipartitions: ndarray,
+        where values contains an ndarray of shape (n_datapoints). Contains
+        the cost of each cut as value.
+        """
+        idx = np.argsort(cost_bipartitions)
+
+        self.values = self.values[idx]
+        self.costs = cost_bipartitions[idx]
+        self.order = np.argsort(idx)
+
+        return self
