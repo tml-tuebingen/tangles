@@ -90,9 +90,8 @@ class ContractedTangleNode(TangleNode):
         ret = {}
         own_cuts: Cuts = self.tangle._cuts
         for cut_id, orientation in characterizing_cuts.items():
-            cut = own_cuts.get_cut_at(cut_id, access_sorted=False)
-            if not orientation:
-                cut = ~cut
+            cut = orientation.orient_cut(
+                own_cuts.get_cut_at(cut_id, from_unsorted=False))
             ret[own_cuts.unsorted_id(cut_id)] = cut
         return ret
 

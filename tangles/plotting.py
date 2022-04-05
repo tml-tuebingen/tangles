@@ -155,7 +155,7 @@ def plot_soft_prediction_node(data, node, eq_cuts, id_node, cmap, path, pos):
     fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(5, 5))
     plot_dataset(data, colors, eq_cuts=eq_characterizing_cuts,
                  ax=ax, cmap=cmap, pos=pos)
-    ax.set_xlabel("Node Id: {}".format(id_node))
+    ax.set_xlabel(f"Node: {node}")
 
     plt.tight_layout()
     if path is not None:
@@ -189,7 +189,8 @@ def plot_hard_predictions(data, ys_predicted, path=None):
         ax_true.set_title("Ground truth clusters")
         _ = plot_dataset(data, colors_true, ax=ax_true, add_colorbar=False)
     else:
-        fig, ax_predicted = plt.subplots(nrows=1, ncols=1, figsize=(10, 50))
+        fig, ax_predicted = plt.subplots(
+            nrows=1, ncols=1, figsize=(10, 50))
 
     colors_predicted = labels_to_colors(ys_predicted, cmap=cmap_predictions)
     _ = plot_dataset(data, colors_predicted,

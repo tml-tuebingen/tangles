@@ -46,6 +46,14 @@ class Orientation(object):
     def __repr__(self) -> str:
         return self.__str__()
 
+    def orient_cut(self, cut: np.ndarray):
+        if self.orientation_bool is None:
+            return cut
+        elif self.orientation_bool:
+            return cut
+        else:
+            return ~cut
+
 
 def normalize(array):
     """

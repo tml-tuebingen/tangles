@@ -88,37 +88,37 @@ class Data(object):
 class Cuts(object):
     def __init__(self, values: np.ndarray, costs: Optional[np.ndarray] = None):
         """
-        Initializes a cut object with the given values. 
+        Initializes a cut object with the given values.
         A ROW in the given values object represents one cut.
         """
         self.order: Optional[np.ndarray] = None
         self.values = values
+        self.values_unsorted = values
         self.costs = costs
 
-    def get_cut_at(self, id: int, access_sorted: bool = False):
+    def get_cut_at(self, id: int, from_unsorted: bool = False):
         """
-        Returns the cut at the given ID. 
+        Returns the cut at the given ID.
 
-        If access_sorted is set to True, uses id to index into
-        the sorted array, elses interprets the id as being of the original.
+        If from_unsorted is set to True, uses the ID to access the unsorted array.
         """
-        if access_sorted:
-            if self.order is None:
-                raise ValueError("Cuts are not sorted yet!")
-            return self.values[id, :]
-        else:
-            id = self.unsorted_id(id)
-            return self.values[id, :]
+        if from_unsorted:
+            return self.values_unsorted[id]
+        return self.values[id, :]
 
     def unsorted_id(self, id: int):
         """
-        Takes in a cut id from this cuts objects and returns the original id, before 
+        Takes in a cut id from this cuts objects and returns the original id, before
         it was sorted.
         """
         if self.order is None:
             return id
         else:
-            return self.order[id]
+            where_matches_id = np.argwhere(self.order == id)
+            if where_matches_id.size != 1:
+                print(
+                    f"Order of cuts is wrong: {where_matches_id}\nMultiple matches for {id}: {where_matches_id}")
+            return where_matches_id[0][0]
 
     def compute_cost_and_order_cuts(self, cost_function: Callable, verbose=True):
         """
