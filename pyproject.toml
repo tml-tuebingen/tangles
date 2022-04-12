@@ -6,8 +6,7 @@ build-backend = "poetry.core.masonry.api"
 name = "tangles"
 version = "0.1.0"
 description = "Implementation of the tangles algorithm as described in https://arxiv.org/abs/2006.14444."
-# Add Solveig if she wants
-authors = ["Alexander Conzelmann <conzelw@gmail.com>"]
+authors = ["Solveig Klepper <solveig.klepper@uni-tuebingen.de>", "Alexander Conzelmann <lexan@kabelbw.de>"]
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/Conzel/tangles"
