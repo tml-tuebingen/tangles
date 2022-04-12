@@ -636,6 +636,6 @@ def get_hard_predictions(X: np.ndarray, agreement: int, verbose: int = 0):
     contracted.processed_soft_predictions = True
 
     ys_predicted, _ = compute_hard_predictions(
-        contracted, verbose=verbose_bool)
+        contracted, cuts, verbose=verbose_bool)
 
     return ys_predicted
