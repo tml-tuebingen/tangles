@@ -41,7 +41,7 @@ class Tangle(dict):
             All the biparitions of the specification
         core: list of bitarray
             All the biparitions of the core of the specification
-        specification: dict of bool
+        specification: bitarray
             The key is the index of the cut in the list of all the cuts and
             the value is which orientation of that specification we need to take
         """
@@ -66,7 +66,20 @@ class Tangle(dict):
         return self._core
 
     def get_specification(self):
+        """
+        Returns access to the whole specification of the cut.
+        The specification is a bitarray as large as the number of cuts.
+        The k-th entry of the specification indicates the orientation
+        of the k-th cut, as indicated by the list of all cuts.
+        """
         return self._specification
+
+    def get_orientation(self, k):
+        """
+        Returns the orientation of cut k (True for left-oriented,
+        False for right-oriented)
+        """
+        return bool(self._specification[k])
 
     def add(self, new_cut, new_cut_id, orientation, min_size):
         """
