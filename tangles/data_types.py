@@ -86,7 +86,7 @@ class Data(object):
 
 
 class Cuts(object):
-    def __init__(self, values: np.ndarray, costs: Optional[np.ndarray] = None):
+    def __init__(self, values: np.ndarray, costs: Optional[np.ndarray] = None, names=None):
         """
         Initializes a cut object with the given values.
         A ROW in the given values object represents one cut.
@@ -95,6 +95,7 @@ class Cuts(object):
         self.values = values
         self.values_unsorted = values
         self.costs = costs
+        self.names = names
 
     def get_cut_at(self, id: int, from_unsorted: bool = False):
         """
