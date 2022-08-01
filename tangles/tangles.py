@@ -1,6 +1,18 @@
 from copy import deepcopy
 from itertools import combinations
-from src.utils import subset
+from bitarray import bitarray
+
+from .utils import subset
+from .data_types import Cuts
+
+
+def pad_bitarray(b, n):
+    """
+    Pads bitarray b to desired length n with zeros at the end.
+    """
+    if len(b) < n:
+        b.extend(bitarray('0' * (n - len(b))))
+    return b
 
 
 class Tangle(dict):
@@ -20,7 +32,6 @@ class Tangle(dict):
         return str(self.specification)
 
     def __init__(self, cuts=None, core=None, specification=None):
-
         """
         Initialise a new specification
 
@@ -30,7 +41,7 @@ class Tangle(dict):
             All the biparitions of the specification
         core: list of bitarray
             All the biparitions of the core of the specification
-        specification: dict of bool
+        specification: bitarray
             The key is the index of the cut in the list of all the cuts and
             the value is which orientation of that specification we need to take
         """
@@ -39,16 +50,38 @@ class Tangle(dict):
         if core is None:
             core = []
         if cuts is None:
+            raise ValueError("cuts cannot be None")
             cuts = []
         if specification is None:
-            specification = {}
+            specification = bitarray()
 
-        self.cuts = cuts
-        self.core = core
-        self.specification = specification
+        self._cuts = cuts
+        self._core = core
+        self._specification = specification
 
-    def add(self, new_cut, new_cut_specification, min_size):
+    def get_cuts(self) -> Cuts:
+        return self._cuts
 
+    def get_core(self):
+        return self._core
+
+    def get_specification(self):
+        """
+        Returns access to the whole specification of the cut.
+        The specification is a bitarray as large as the number of cuts.
+        The k-th entry of the specification indicates the orientation
+        of the k-th cut, as indicated by the list of all cuts.
+        """
+        return self._specification
+
+    def get_orientation(self, k):
+        """
+        Returns the orientation of cut k (True for left-oriented,
+        False for right-oriented)
+        """
+        return bool(self._specification[k])
+
+    def add(self, new_cut, new_cut_id, orientation, min_size):
         """
         Check if new_cut can be added to the current orientation
 
@@ -56,8 +89,10 @@ class Tangle(dict):
         ----------
         new_cut: bitarray
             The cut that we need to add as bitarray
-        new_cut_specification: dict of bool
-            The specification of new_cut
+        new_cut_id: int
+            The index of the cut in the list of all the cuts
+        orientation: bool
+            The orientation of the cut. True if naturally oriented, False if reversed
         min_size:
             Minimum triplet size that we accept for it to be a tangle
 
@@ -67,22 +102,23 @@ class Tangle(dict):
             If it is possible to add we return the new specification otherwise we return None
         """
 
-        cuts = deepcopy(self.cuts)
-        core = deepcopy(self.core)
-        specification = deepcopy(self.specification)
+        core = deepcopy(self._core)
+        specification = self._specification.copy()
+
+        pad_bitarray(specification, new_cut_id + 1)
 
         i_to_remove = []
         for i, core_cut in enumerate(core):
             if subset(core_cut, new_cut):
-                cuts.append(new_cut)
-                specification.update(new_cut_specification)
-                return Tangle(cuts, core, specification)
+                specification[new_cut_id] = orientation
+                return Tangle(self._cuts, core, specification)
             if subset(new_cut, core_cut):
                 i_to_remove.append(i)
 
         for i in i_to_remove[::-1]:
             del core[i]
 
+        # Checking for consistency...
         if len(core) == 0:
             # noinspection PyArgumentList
             if new_cut.count() < min_size:
@@ -95,11 +131,10 @@ class Tangle(dict):
                 if (core1 & core2 & new_cut).count() < min_size:
                     return None
 
-        cuts.append(new_cut)
         core.append(new_cut)
-        specification.update(new_cut_specification)
+        specification[new_cut_id] = orientation
 
-        return Tangle(cuts, core, specification)
+        return Tangle(self._cuts, core, specification)
 
 
 def core_algorithm(tree, current_cuts, idx_current_cuts):
