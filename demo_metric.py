@@ -3,14 +3,14 @@ from pathlib import Path
 
 import sklearn
 
-from src import cost_functions, data_types, plotting
-from src.loading import load_GMM
-from src.cut_finding import a_slice
-from src import utils
+from tangles import cost_functions, data_types, plotting
+from tangles.loading import load_GMM
+from tangles.cut_finding import a_slice
+from tangles import utils
 
 import numpy as np
 
-from src.tree_tangles import ContractedTangleTree, tangle_computation, compute_soft_predictions_children
+from tangles.tree_tangles import ContractedTangleTree, tangle_computation, compute_soft_predictions_children
 
 """
 Simple script for exemplary use of the tangle framework.
@@ -39,7 +39,8 @@ print("Preprocessing data", flush=True)
 
 # calculate your bipartitions
 print("\tGenerating set of bipartitions", flush=True)
-bipartitions = data_types.Cuts(values=a_slice(xs=data.xs, a=agreement))
+values, names = a_slice(xs=data.xs, a=agreement)
+bipartitions = data_types.Cuts(values=values, names=names)
 
 print("\tFound {} unique bipartitions".format(len(bipartitions.values)), flush=True)
 print("\tCalculating costs if bipartitions", flush=True)
@@ -81,7 +82,7 @@ compute_soft_predictions_children(node=contracted_tree.root,
 contracted_tree.processed_soft_prediction = True
 
 
-print("Calculating hard predictions/n", flush=True)
+print("Calculating hard predictions", flush=True)
 ys_predicted, _ = utils.compute_hard_predictions(contracted_tree, cuts=bipartitions)
 
 # evaluate hard predictions
@@ -90,7 +91,7 @@ if data.ys is not None:
     NMI = sklearn.metrics.normalized_mutual_info_score(data.ys, ys_predicted)
 
     print('Adjusted Rand Score: {}'.format(ARS), flush=True)
-    print('Normalized Mutual Information: {}/n'.format(NMI), flush=True)
+    print('Normalized Mutual Information: {}'.format(NMI), flush=True)
 
 if plot:
     print("Plotting the data.", flush=True)
@@ -101,10 +102,10 @@ if plot:
     ##### If you have graphviz installen feel free to uncomment the following lines to also plot and save the trees
     #####
     ## plot the tree
-    # tangles_tree.plot_tree(path=output_directory / 'tree.svg')
+    tangles_tree.plot_tree(path=output_directory / 'tree.svg')
 
     ## plot contracted tree
-    # contracted_tree.plot_tree(path=output_directory / 'contracted.svg')
+    contracted_tree.plot_tree(path=output_directory / 'contracted.svg')
 
     # plot soft predictions
     plotting.plot_soft_predictions(data=data,

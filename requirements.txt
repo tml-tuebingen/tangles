@@ -1,5 +1,5 @@
-matplotlib==3.1.3
-numpy==1.20.1
+matplotlib~=3.5.3
+numpy~=1.23.1
 pandas==1.2.2
 scikit-learn==0.24.1
 scipy==1.6.1
@@ -8,3 +8,9 @@ bitarray==1.6.3
 seaborn==0.11.1
 pydot==1.4.2
 graphviz==0.16
+pip~=22.2.2
+wheel~=0.36.2
+setuptools~=57.0.0
+tangles~=0.1.0
+sklearn~=0.0
+tqdm~=4.64.0

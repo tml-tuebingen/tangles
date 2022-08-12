@@ -6,6 +6,9 @@ import numpy as np
 from sklearn.manifold import TSNE
 from typing import Union, Optional
 
+from sklearn.neighbors import DistanceMetric
+from tqdm import tqdm
+
 
 class Orientation(object):
 
@@ -196,8 +199,8 @@ def order_cuts(bipartitions: Cuts, cost_bipartitions: np.ndarray):
     bipartitions.costs = cost_bipartitions[idx]
     if bipartitions.names is not None:
         bipartitions.names = bipartitions.names[idx]
-    if bipartitions.equations is not None:
-        bipartitions.equations = bipartitions.equations[idx]
+    #if bipartitions.equations is not None:
+    #    bipartitions.equations = bipartitions.equations[idx]
 
     bipartitions.order = np.argsort(idx)
 

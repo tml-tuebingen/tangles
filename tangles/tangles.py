@@ -137,7 +137,7 @@ class Tangle(dict):
         return Tangle(self._cuts, core, specification)
 
 
-def core_algorithm(tree, current_cuts, idx_current_cuts):
+def core_algorithm(tree, current_cuts, current_names, idx_current_cuts):
     """
     Algorithm iteratively adding cuts to the tree
 
@@ -156,8 +156,8 @@ def core_algorithm(tree, current_cuts, idx_current_cuts):
         We return the new tree with added cuts if it is possible
     """
 
-    for idx_cut, cut in zip(idx_current_cuts, current_cuts):
-        could_add = tree.add_cut(cut=cut, cut_id=idx_cut)
+    for idx_cut, name, cut in zip(idx_current_cuts, current_names, current_cuts):
+        could_add = tree.add_cut(cut=cut, name=name, cut_id=idx_cut)
         if could_add is False:
             return None
 

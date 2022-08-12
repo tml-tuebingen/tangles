@@ -2,17 +2,16 @@ from functools import partial
 from pathlib import Path
 
 from sklearn.metrics import normalized_mutual_info_score, silhouette_score, davies_bouldin_score, adjusted_rand_score
-from sklearn.neighbors._dist_metrics import DistanceMetric
 
-from src import cost_functions, data_types, plotting
-from src.loading import load_GMM, make_mindsets
-from src.cut_finding import a_slice
-from src import utils
+from tangles import utils
+from tangles import cost_functions, data_types, plotting
+from tangles.loading import load_GMM, make_mindsets
+from tangles.cut_finding import a_slice
 
 import numpy as np
 
-from src.tree_tangles import ContractedTangleTree, tangle_computation, compute_soft_predictions_children
-from src.utils import compute_hard_predictions, compute_mindset_prediciton
+from tangles.tree_tangles import ContractedTangleTree, tangle_computation, compute_soft_predictions_children
+from tangles.utils import compute_hard_predictions, compute_mindset_prediciton
 
 """
 Simple script for exemplary use of the tangle framework.
@@ -41,7 +40,7 @@ print("Preprocessing data", flush=True)
 
 # calculate your bipartitions we use the binary questions/features directly as bipartitions
 print("\tGenerating set of bipartitions", flush=True)
-bipartitions = data_types.Cuts(values=(data.xs == True).T)
+bipartitions = data_types.Cuts(values=(data.xs == True).T, names=np.arange(13))
 
 print("\tFound {} unique bipartitions".format(len(bipartitions.values)), flush=True)
 print("\tCalculating costs if bipartitions", flush=True)
@@ -85,7 +84,7 @@ contracted_tree.processed_soft_prediction = True
 
 print("Calculating hard predictions", flush=True)
 ys_predicted, cs = compute_hard_predictions(contracted_tree,
-                                                        cuts=bipartitions, xs=data.xs)
+                                                        cuts=bipartitions, xs=None)
 
 # evaluate hard predictions
 if data.ys is not None:

@@ -16,7 +16,7 @@ MAX_CLUSTERS = 50
 
 class TangleNode(object):
 
-    def __init__(self, parent, right_child, left_child, is_left_child, splitting,
+    def __init__(self, parent, right_child, left_child, is_left_child, name, splitting,
                  did_split, last_cut_added_id, last_cut_added_orientation, tangle: Tangle):
 
         self.parent = parent
@@ -31,6 +31,7 @@ class TangleNode(object):
         self.last_cut_added_orientation = last_cut_added_orientation
 
         self.tangle = tangle
+        self.name = name
 
     @property
     def last_cut_added(self) -> np.ndarray:
@@ -133,10 +134,11 @@ class ContractedTangleNode(TangleNode):
 
 
 # created new TangleNode and adds it as child to current node
-def _add_new_child(current_node, tangle, last_cut_added_id, last_cut_added_orientation, did_split):
+def _add_new_child(current_node, tangle, name, last_cut_added_id, last_cut_added_orientation, did_split):
     new_node = TangleNode(parent=current_node,
                           right_child=None,
                           left_child=None,
+                          name=name,
                           is_left_child=last_cut_added_orientation,
                           splitting=False,
                           did_split=did_split,
@@ -159,6 +161,7 @@ class TangleTree(object):
         self.root = TangleNode(parent=None,
                                right_child=None,
                                left_child=None,
+                               name=None,
                                splitting=None,
                                is_left_child=None,
                                did_split=True,
@@ -178,7 +181,7 @@ class TangleTree(object):
     # function to add a single cut to the tree
     # function checks if tree is empty
     # --- stops if number of active leaves gets too large ! ---
-    def add_cut(self, cut, cut_id):
+    def add_cut(self, cut, name, cut_id):
         if self.max_clusters and len(self.active) >= self.max_clusters:
             print('Stopped since there are more then 50 leaves already.')
             return False
@@ -191,7 +194,7 @@ class TangleTree(object):
         # Check if we can add the current cut to them.
         for current_node in current_active:
             could_add_node, did_split, is_maximal = self._add_children_to_node(
-                current_node, cut, cut_id)
+                current_node, cut, name, cut_id)
             could_add_one = could_add_one or could_add_node
 
             if did_split:
@@ -205,7 +208,7 @@ class TangleTree(object):
 
         return could_add_one
 
-    def _add_children_to_node(self, current_node, cut, cut_id):
+    def _add_children_to_node(self, current_node, cut, name, cut_id):
         old_tangle = current_node.tangle
 
         if cut.dtype is not bool:
@@ -240,6 +243,7 @@ class TangleTree(object):
         if new_tangle_true is not None:
             could_add_one = True
             new_node = _add_new_child(current_node=current_node,
+                                      name=name,
                                       tangle=new_tangle_true,
                                       last_cut_added_id=cut_id,
                                       last_cut_added_orientation=True,
@@ -250,6 +254,7 @@ class TangleTree(object):
         if new_tangle_false is not None:
             could_add_one = True
             new_node = _add_new_child(current_node=current_node,
+                                      name=name,
                                       tangle=new_tangle_false,
                                       last_cut_added_id=cut_id,
                                       last_cut_added_orientation=False,
@@ -265,10 +270,11 @@ class TangleTree(object):
 
         pos = graphviz_layout(tree, prog='dot')
 
-        fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(20, 10))
+        fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(10, 5))
         nx.draw_networkx(tree, pos=pos, ax=ax, labels=labels, node_size=1500)
+        plt.tight_layout()
         if path is not None:
-            plt.savefig(path)
+            plt.savefig(path, bbox_inches='tight')
         else:
             plt.show()
 
@@ -282,7 +288,7 @@ class TangleTree(object):
         else:
             my_id = parent_id + direction
             str_o = 'T' if node.last_cut_added_orientation else 'F'
-            my_label = '{} -> {}'.format(node.last_cut_added_id, str_o)
+            my_label = '{} -> {}'.format(node.name, str_o)
 
             tree.add_node(my_id)
             tree.add_edge(my_id, parent_id)
@@ -575,8 +581,10 @@ def tangle_computation(cuts, agreement, verbose):
                     order, len(idx_cuts_order_i)), flush=True)
 
             cuts_order_i = cuts.values[idx_cuts_order_i]
+            cuts_names_i = cuts.names[idx_cuts_order_i] if cuts.names is not None else idx_cuts_order_i
             new_tree = core_algorithm(tree=tangles_tree,
                                       current_cuts=cuts_order_i,
+                                      current_names=cuts_names_i,
                                       idx_current_cuts=idx_cuts_order_i)
 
             if new_tree is None:

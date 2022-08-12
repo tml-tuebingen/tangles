@@ -3,14 +3,14 @@ from pathlib import Path
 
 from sklearn.metrics import normalized_mutual_info_score, silhouette_score, davies_bouldin_score, adjusted_rand_score
 
-from src import cost_functions, data_types, plotting
-from src.loading import load_GMM, load_SBM
-from src.cut_finding import a_slice, fid_mat
-from src import utils
+from tangles import cost_functions, data_types, plotting
+from tangles.loading import load_GMM, load_SBM
+from tangles.cut_finding import a_slice, fid_mat
+from tangles import utils
 
 import numpy as np
 
-from src.tree_tangles import ContractedTangleTree, tangle_computation, compute_soft_predictions_children
+from tangles.tree_tangles import ContractedTangleTree, tangle_computation, compute_soft_predictions_children
 
 """
 Simple script for exemplary use of the tangle framework.

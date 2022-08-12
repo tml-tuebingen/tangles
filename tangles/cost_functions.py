@@ -252,7 +252,6 @@ def mean_manhattan_distance(xs, n_samples, cut):
         return 0
 
     if not n_samples:
-
         in_cut = xs[cut, :]
         out_cut = xs[~cut, :]
 
