@@ -102,10 +102,10 @@ if plot:
     ##### If you have graphviz installen feel free to uncomment the following lines to also plot and save the trees
     #####
     ## plot the tree
-    tangles_tree.plot_tree(path=output_directory / 'tree.svg')
+    # tangles_tree.plot_tree(path=output_directory / 'tree.svg')
 
     ## plot contracted tree
-    contracted_tree.plot_tree(path=output_directory / 'contracted.svg')
+    # contracted_tree.plot_tree(path=output_directory / 'contracted.svg')
 
     # plot soft predictions
     plotting.plot_soft_predictions(data=data,
