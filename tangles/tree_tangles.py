@@ -183,7 +183,7 @@ class TangleTree(object):
     # --- stops if number of active leaves gets too large ! ---
     def add_cut(self, cut, name, cut_id):
         if self.max_clusters and len(self.active) >= self.max_clusters:
-            print('Stopped since there are more then 50 leaves already.')
+            print('Stopped since there are more then %s leaves already.'.format(self.max_clusters))
             return False
 
         current_active = self.active
@@ -273,7 +273,7 @@ class TangleTree(object):
         fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(10, 5))
         nx.draw_networkx(tree, pos=pos, ax=ax, labels=labels, node_size=1500)
         plt.tight_layout()
-        if path is not None:
+        if path:
             plt.savefig(path, bbox_inches='tight')
         else:
             plt.show()
@@ -541,7 +541,7 @@ def compute_soft_predictions_children(node, cuts, weight, verbose=0):
                                           verbose=verbose)
 
 
-def tangle_computation(cuts, agreement, verbose):
+def tangle_computation(cuts, agreement, verbose, max_clusters=None):
     """
 
     Parameters
@@ -561,7 +561,7 @@ def tangle_computation(cuts, agreement, verbose):
         print("Using agreement = {} \n".format(agreement))
         print("Start tangle computation", flush=True)
 
-    tangles_tree = TangleTree(agreement=agreement, cuts=cuts)
+    tangles_tree = TangleTree(agreement=agreement, cuts=cuts, max_clusters=max_clusters)
     old_order = None
 
     unique_orders = np.unique(cuts.costs)

@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 
 from sklearn.datasets import make_blobs
 
@@ -100,3 +101,44 @@ def make_likert_questionnaire(nb_samples, nb_features, nb_mindsets, centers, ran
         ys[idxs[i]] = i
 
     return xs, ys, centers
+
+
+def load_big5(cluster_size=100):
+    data_raw = pd.read_csv('data/big_five.csv', sep='\t')
+    data = data_raw.copy()
+
+    data.drop(data.columns[50:107], axis=1, inplace=True)
+    data.drop(data.columns[51:], axis=1, inplace=True)
+
+    data.dropna(inplace=True)
+
+    countries = np.array(data.country.unique())
+    count = np.array([sum(data.country == c) for c in countries])
+
+    # filter for relatively large groups
+    large = countries[count > 15000]
+    data = data.loc[data.country.isin(large)]
+
+    # ignore NONE countries
+    data = data.drop(data[data.country == 'NONE'].index)
+    df = pd.DataFrame()
+
+    for c in large:
+        df = df.append(data.loc[data.country == c][:cluster_size])
+
+    ys = pd.factorize(df.country)[0]
+    df.drop(data.columns[50], axis=1, inplace=True)
+
+    cuts = [2, 3, 4, 5]
+
+    questions = np.zeros([len(df), len(cuts) * 50])
+    names = np.empty([len(cuts)*50], dtype=np.dtype('U11'))
+
+    for i, c in enumerate(df.columns):
+        for j_i, j in enumerate(cuts):
+            questions[:, i*len(cuts) + (j_i)] = np.array(df[df.columns[i]] < j, dtype=int)
+            #questions[:, len(cuts) * 50 + i*len(cuts) + (j_i)] = np.array(df[df.columns[i]] >= j, dtype=int)
+            names[i*len(cuts) + (j_i)] = c + "_" + str(j)
+            #names[len(cuts) * 50 + i*len(cuts) + (j_i)] = "not_" + c + "_" + str(j)
+
+    return questions, ys, names

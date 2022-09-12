@@ -5,7 +5,7 @@ from sklearn.metrics import normalized_mutual_info_score, silhouette_score, davi
 
 from tangles import utils
 from tangles import cost_functions, data_types, plotting
-from tangles.loading import load_GMM, make_mindsets
+from tangles.loading import load_GMM, make_mindsets, load_big5
 from tangles.cut_finding import a_slice
 
 import numpy as np
@@ -28,19 +28,20 @@ The execution is divided in the following steps
 plot = True
 output_directory = Path('output_mindsets')
 seed = 42
-agreement = 20
+agreement = 300
 
 # load your data
 print("Loading dataset", flush=True)
-xs, ys, cs = make_mindsets(mindset_sizes=[50, 50], nb_questions=10, nb_useless=3, noise=0.1, seed=seed)
+#xs, ys, cs = make_mindsets(mindset_sizes=[50, 50], nb_questions=10, nb_useless=3, noise=0.1, seed=seed)
+xs, ys, names = load_big5(cluster_size=500)
 
-data = data_types.Data(xs=xs, ys=ys, cs=cs)
+data = data_types.Data(xs=xs, ys=ys, cs=None)
 
 print("Preprocessing data", flush=True)
 
 # calculate your bipartitions we use the binary questions/features directly as bipartitions
 print("\tGenerating set of bipartitions", flush=True)
-bipartitions = data_types.Cuts(values=(data.xs == True).T, names=np.arange(13))
+bipartitions = data_types.Cuts(values=(data.xs == True).T, names=names)
 
 print("\tFound {} unique bipartitions".format(len(bipartitions.values)), flush=True)
 print("\tCalculating costs if bipartitions", flush=True)
@@ -52,8 +53,8 @@ print("Tangle algorithm", flush=True)
 print("\tBuilding the tangle search tree", flush=True)
 tangles_tree = tangle_computation(cuts=bipartitions,
                                   agreement=agreement,
-                                  verbose=3  # print everything
-                                  )
+                                  verbose=3,  # print everything
+                                  max_clusters=5)
 print("Built tree has {} leaves".format(len(tangles_tree.maximals)), flush=True)
 # postprocess tree
 print("Postprocessing the tree.", flush=True)
@@ -106,10 +107,10 @@ if plot:
     ##### If you have graphviz installen feel free to uncomment the following lines to also plot and save the trees
     #####
     ## plot the tree
-    # tangles_tree.plot_tree(path=output_directory / 'tree.svg')
+    tangles_tree.plot_tree(path=output_directory / 'tree.svg')
 
     ## plot contracted tree
-    # contracted_tree.plot_tree(path=output_directory / 'contracted.svg')
+    contracted_tree.plot_tree(path=output_directory / 'contracted.svg')
 
     # plot soft predictions
     plotting.plot_soft_predictions(data=data,
@@ -121,4 +122,4 @@ if plot:
     plotting.plot_hard_predictions(data=data, ys_predicted=ys_predicted, path=output_directory / 'clustering')
 
     # plot cuts
-    plotting.plot_cuts(data=data, cuts=bipartitions, nb_cuts_to_plot=10, path=output_directory / 'cuts')
+    #plotting.plot_cuts(data=data, cuts=bipartitions, nb_cuts_to_plot=10, path=output_directory / 'cuts')
