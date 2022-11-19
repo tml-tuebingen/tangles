@@ -121,7 +121,7 @@ if plot:
                                    path=output_directory / 'soft_clustering')
 
     # plot hard clustering
-    plotting.plot_hard_predictions(data=data, ys_predicted=ys_predicted, path=output_directory / 'clustering')
+    plotting.plot_hard_predictions(data=data, ys_predicted=ys_predicted, path=output_directory / 'hard_clustering')
 
     # plot cuts
     plotting.plot_cuts(data=data, cuts=bipartitions, nb_cuts_to_plot=10, path=output_directory / 'cuts')

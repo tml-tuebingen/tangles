@@ -3,6 +3,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
+import pandas as pd
 
 from .utils import get_points_to_plot
 
@@ -105,7 +106,7 @@ def plot_dataset_metric(xs, cs, colors, eq_cuts, ax, cmap, add_colorbar, gt):
 def labels_to_colors(ys, cmap):
     nb_points = len(ys)
     colors = np.zeros((nb_points, 4))
-    normalize_ys = mpl.colors.Normalize(vmin=0, vmax=np.max(ys))
+    normalize_ys = mpl.colors.Normalize(vmin=0, vmax=len(np.unique(ys)))
 
     for y in np.unique(ys):
         idx_current = (ys == y).nonzero()[0]
@@ -119,7 +120,7 @@ def plot_soft_predictions(data, contracted_tree, eq_cuts=None, id_node=0, path=N
     cmap_groundtruth = plt.cm.get_cmap('autumn')
     cmap_heatmap = plt.cm.get_cmap('Blues')
 
-    if path is not None:
+    if path:
         output_path = path
         output_path.mkdir(parents=True, exist_ok=True)
 
@@ -130,7 +131,7 @@ def plot_soft_predictions(data, contracted_tree, eq_cuts=None, id_node=0, path=N
                                ax=ax, add_colorbar=False, gt=data.ys)
 
         plt.tight_layout()
-        if path is not None:
+        if path:
             fig.savefig(output_path / "groundtruth.svg")
             plt.close(fig)
         else:
@@ -229,7 +230,7 @@ def plot_cuts(data, cuts, nb_cuts_to_plot, path):
     plt.ioff()
 
     if path is not None:
-        path = path / 'cuts'
+        path = path
         path.mkdir(parents=True, exist_ok=True)
 
     value_cuts = cuts.values

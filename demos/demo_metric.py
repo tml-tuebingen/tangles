@@ -1,17 +1,16 @@
 from functools import partial
 from pathlib import Path
 
-from sklearn.metrics import normalized_mutual_info_score, silhouette_score, davies_bouldin_score, adjusted_rand_score
+import sklearn
 
-from tangles import utils
 from tangles import cost_functions, data_types, plotting
-from tangles.loading import load_GMM, make_mindsets
+from tangles.loading import load_GMM
 from tangles.cut_finding import a_slice
+from tangles import utils
 
 import numpy as np
 
 from tangles.tree_tangles import ContractedTangleTree, tangle_computation, compute_soft_predictions_children
-from tangles.utils import compute_hard_predictions, compute_mindset_prediciton
 
 """
 Simple script for exemplary use of the tangle framework.
@@ -26,26 +25,27 @@ The execution is divided in the following steps
 
 # define yout parameters
 plot = True
-output_directory = Path('output_mindsets')
+output_directory = Path('output_metric')
 seed = 42
 agreement = 20
 
 # load your data
 print("Loading dataset", flush=True)
-xs, ys, cs = make_mindsets(mindset_sizes=[50, 50], nb_questions=10, nb_useless=3, noise=0.1, seed=seed)
+xs, ys = load_GMM(blob_sizes=[100, 100], blob_centers=[[2, 2], [-2, -2]], blob_variances=[[1, 1], [1, 1]], seed=seed)
 
-data = data_types.Data(xs=xs, ys=ys, cs=cs)
+data = data_types.Data(xs=xs, ys=ys)
 
 print("Preprocessing data", flush=True)
 
-# calculate your bipartitions we use the binary questions/features directly as bipartitions
+# calculate your bipartitions
 print("\tGenerating set of bipartitions", flush=True)
-bipartitions = data_types.Cuts(values=(data.xs == True).T, names=np.arange(13))
+values, names = a_slice(xs=data.xs, a=agreement)
+bipartitions = data_types.Cuts(values=values, names=names)
 
 print("\tFound {} unique bipartitions".format(len(bipartitions.values)), flush=True)
 print("\tCalculating costs if bipartitions", flush=True)
 bipartitions = utils.compute_cost_and_order_cuts(bipartitions,
-                                                 partial(cost_functions.mean_manhattan_distance, data.xs, None))
+                                                 partial(cost_functions.mean_euclidean_distance, data.xs, None))
 
 print("Tangle algorithm", flush=True)
 # calculate the tangle search tree
@@ -54,7 +54,6 @@ tangles_tree = tangle_computation(cuts=bipartitions,
                                   agreement=agreement,
                                   verbose=3  # print everything
                                   )
-print("Built tree has {} leaves".format(len(tangles_tree.maximals)), flush=True)
 # postprocess tree
 print("Postprocessing the tree.", flush=True)
 # contract to binary tree
@@ -82,23 +81,20 @@ compute_soft_predictions_children(node=contracted_tree.root,
 
 contracted_tree.processed_soft_prediction = True
 
+
 print("Calculating hard predictions", flush=True)
-ys_predicted, cs = compute_hard_predictions(contracted_tree,
-                                                        cuts=bipartitions, xs=None)
+ys_predicted, _ = utils.compute_hard_predictions(contracted_tree, cuts=bipartitions)
 
 # evaluate hard predictions
 if data.ys is not None:
-    ARS = adjusted_rand_score(data.ys, ys_predicted)
-    NMI = normalized_mutual_info_score(data.ys, ys_predicted)
+    ARS = sklearn.metrics.adjusted_rand_score(data.ys, ys_predicted)
+    NMI = sklearn.metrics.normalized_mutual_info_score(data.ys, ys_predicted)
 
-    print('Found {} clusters.'.format(len(np.unique(ys_predicted))))
     print('Adjusted Rand Score: {}'.format(ARS), flush=True)
     print('Normalized Mutual Information: {}'.format(NMI), flush=True)
 
 if plot:
     print("Plotting the data.", flush=True)
-
-    # the embeddings are calculated based on the ground truth
 
     output_directory.mkdir(parents=True, exist_ok=True)
 
@@ -118,7 +114,7 @@ if plot:
                                    path=output_directory / 'soft_clustering')
 
     # plot hard clustering
-    plotting.plot_hard_predictions(data=data, ys_predicted=ys_predicted, path=output_directory / 'clustering')
+    plotting.plot_hard_predictions(data=data, ys_predicted=ys_predicted, path=output_directory / 'hard_clustering')
 
     # plot cuts
     plotting.plot_cuts(data=data, cuts=bipartitions, nb_cuts_to_plot=10, path=output_directory / 'cuts')
