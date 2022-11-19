@@ -1,24 +1,11 @@
-# Tangles
-
-<p align="center">
-  <img src="images/dendrogram.png" width="500"/>
-</p>
-
-## Installing
-This repository can be installed locally via running `pip install .` in the project root. The corresponding modules (located under `tangles`) can then be imported in your code via ìmport tangles.<module>`, where module is the 
-filename of the module you want to import (f.e. import tangles.tree_tangles).
-
-This module can also be installed with its dependencies using poetry. Refer to [their guide](https://python-poetry.org/docs/) for information on how to set up poetry. Then, navigate to this folder and run `poetry shell` followed by `poetry install`.
-
-## Code to the paper
-Clustering with Tangles: Algorithmic Framework and Theoretical Guarantees. Cite: https://arxiv.org/abs/2006.14444
-
-
-
 # Welcome to the tangles Package!
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?color=g&style=plastic)](https://opensource.org/licenses/MIT)
 ![tests](https://github.com/tml-tuebingen/tangles/workflows/pytesting/badge.svg)
+
+<p align="center">
+  <img src="images/dendrogram.png" width="500"/>
+</p>
 
 This is a python package for data clustering using the tangles algorithmic framework. 
 
