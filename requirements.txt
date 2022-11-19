@@ -11,6 +11,6 @@ graphviz==0.16
 pip~=22.2.2
 wheel~=0.36.2
 setuptools~=57.0.0
-tangles~=0.1.0
+tangles==0.1.0
 sklearn~=0.0
 tqdm~=4.64.0
