@@ -230,7 +230,7 @@ def plot_cuts(data, cuts, nb_cuts_to_plot, path):
     plt.ioff()
 
     if path is not None:
-        path = path / 'cuts'
+        path = path
         path.mkdir(parents=True, exist_ok=True)
 
     value_cuts = cuts.values
