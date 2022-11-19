@@ -168,6 +168,7 @@ class Cuts(object):
         self.values = self.values[idx]
         self.costs = cost_bipartitions[idx]
         self.order = np.argsort(idx)
-        self.names = self.names[idx]
+        if self.names is not None:
+            self.names = self.names[idx]
 
         return self
